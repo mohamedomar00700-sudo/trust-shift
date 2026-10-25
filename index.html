@@ -1084,7 +1084,11 @@ function jpegPdf(url,w,h){const bin=atob(url.split(',')[1]),img=new Uint8Array(b
   const cs=`q ${PW} 0 0 ${PH} 0 0 cm /Im0 Do Q`;obj(5,`<< /Length ${cs.length} >>\nstream\n${cs}\nendstream`);
   const xs=len;let xr='xref\n0 6\n0000000000 65535 f \n';for(let i=1;i<=5;i++)xr+=String(offs[i]).padStart(10,'0')+' 00000 n \n';
   push(enc(xr+`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xs}\n%%EOF`));return new Blob(parts,{type:'application/pdf'})}
-function saveBlob(blob,fn){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),30000)}
+async function saveBlob(blob,fn){
+  /* inside the Claude viewer, files go through its save prompt; everywhere else a normal download link */
+  if(window.claude&&typeof claude.use==='function'){let d=null;try{d=await claude.use('downloads')}catch(e){}
+    if(d){try{await d.save({filename:fn,data:blob})}catch(e){if(e&&e.code!=='declined'&&$('cnote'))$('cnote').textContent='التحميل غير متاح هنا. افتح اللعبة من لينك جيت هاب.'}return}}
+  const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),30000)}
 function openCert(rank,total){
   $('certM')?.remove();let nm='';try{nm=localStorage.getItem(NKEY)||''}catch(e){}
   const m=document.createElement('div');m.className='ask';m.id='certM';
